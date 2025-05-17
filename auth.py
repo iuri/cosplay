@@ -38,7 +38,7 @@ def auth_callback():
     token = oauth.google.authorize_access_token()
     user_info = token.get("userinfo") # Get user info
     session["user"] = user_info  # Save user info in session
-    return redirect("https://cosplay.iurix.com")
+    return redirect("https://cosplay.iurix.com/auth_callback")
 
 
 
