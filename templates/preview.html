@@ -1,0 +1,109 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+  <center>
+      <div id="loader" class="loading-container">
+        <span class="loading-text">Loading</span>
+        <div class="loading-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+  </center>
+  <h1>Form Responses</h1> 
+  <div class="container-fluid mt-4">
+  <form method="get" class="mb-3">
+    <label for="status" class="form-label me-2">Filter by Status:</label>
+    <select name="status" id="status" class="form-select d-inline w-auto me-2" onchange="this.form.submit()">
+      <option value="" {% if not status_filter %}selected{% endif %}>All</option>
+      <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+      <option value="disapproved" {% if status_filter == 'disapproved' %}selected{% endif %}>Disapproved</option>
+      <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+    </select>
+  </form>
+  <form  id="previewForm"method="post" class="container-fluid mt-4">
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Actions</th>
+          {% for col in columns %}
+            <th>{{ col }}</th>
+          {% endfor %}
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in responses %}
+        <tr>
+           <td>
+            <select name="decision_{{ row.submission_id }}" class="form-select form-select-sm d-inline w-auto">
+              <option value="">--</option>
+              <option value="approved">Approve</option>
+              <option value="disapproved">Disapprove</option>
+            </select>
+          </td>
+          {% for col in columns %}
+            <td>  <a href="{{ url_for('detail_view', submission_id=row.submission_id) }}">{{ row.get(col, '') }}</a></td>
+          {% endfor %}
+          <td>{{ row.approved or "Pending" }}</td>
+         
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Submit Decisions</button>
+  </form>
+
+  <script>
+    const loader = document.getElementById('loader');
+    const form = document.getElementById('previewForm');
+    const toggleButton = document.getElementById('toggleFormBtn');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const collapsibleForm = document.getElementById('collapsibleForm');
+
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Show loader when the form is submitted
+    form.addEventListener('submit', () => {
+      loader.style.display = 'block';
+      form.style.display = 'none';
+    });
+
+    // Ensure loader is hidden once the /result page fully loads
+    window.addEventListener('load', () => {
+      loader.style.display = 'none';
+    });
+
+
+    // Toggle Expand/Collapse
+    toggleButton.addEventListener('click', () => {
+      if (collapsibleForm.classList.contains('show')) {
+          collapsibleForm.classList.remove('show');
+          toggleIcon.classList.replace('bi-dash-circle', 'bi-plus-circle');
+          toggleButton.setAttribute('title', 'Click to expand');
+
+      } else {
+          collapsibleForm.classList.add('show');
+          toggleIcon.classList.replace('bi-plus-circle', 'bi-dash-circle');
+          toggleButton.setAttribute('title', 'Click to collapse');
+
+
+      }
+
+      // Refresh tooltip to update the message
+      var tooltipInstance = bootstrap.Tooltip.getInstance(toggleButton);
+      tooltipInstance.dispose();
+      tooltipInstance = new bootstrap.Tooltip(toggleButton);
+
+    });
+  </script>
+
+  
+{% endblock %}    

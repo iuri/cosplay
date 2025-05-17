@@ -1,0 +1,54 @@
+<!-- templates/settings.html -->
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Settings</h1>
+    <form action="{{ url_for('settings') }}" method="POST">
+        <div class="mb-3">
+            <label for="model">Model:</label>
+            <select id="model" name="model" required>
+                <!-- Add options for the models, with one of them being the current setting -->
+                <option value="o1-2024-12-17" {% if settings.model == "o1-2024-12-17" %}selected{% endif %}>GPTo1</option>
+                <option value="o1-mini-2024-09-12" {% if settings.model == "o1-mini-2024-09-12" %}selected{% endif %}>GPTo1-mini</option>
+                <option value="gpt-4o" {% if settings.model == "gpt-4o" %}selected{% endif %}>GPT4o</option>
+                <option value="gpt-4o-mini" {% if settings.model == "gpt-4o-mini" %}selected{% endif %}>GPT-4o Mini</option>
+                <option value="gpt4" {% if settings.model == "gpt4" %}selected{% endif %}>GPT-4</option>
+                <option value="gpt-3.5-turbo" {% if settings.model == "gpt-3.5-turbo" %}selected{% endif %}>gpt-3.5-turbo</option>
+                <option value="dall-e-3" {% if settings.model == "dall-e-3" %}selected{% endif %}>Dall-e-3"</option>
+            </select>
+            <br>
+            <span class="helper-text">[i]&nbsp;</span><span>Select the model used for processing. Each model has different capabilities.</span>
+           
+        </div>
+        <div class="mb-3">           
+            <label for="tokens">Tokens:</label>
+            <input type="number" id="tokens" name="tokens" value="{{ settings.tokens }}" required>
+            <br>
+            <span class="helper-text">[i]&nbsp;</span><span>Specify the maximum number of tokens. A higher number allows for longer outputs.</span>
+    
+        </div>
+        <div class="mb-3">
+            <label for="temperature">Creativity:</label>
+            <input type="number" step="0.1" id="temperature" name="temperature" value="{{ settings.temperature }}" required>
+            <br>
+            <span class="helper-text">[i]&nbsp;</span><span>Set the creativity level between 0 and 1. Lower values make output more deterministic; higher values may add halucinations.</span>    
+        </div>
+        <div class="mb-3">
+            <label for="store_p">Enable Document Saving:</label>
+            <input type="checkbox" id="store_p" name="store_p" {% if settings.store_p %}checked{% endif %}>
+            <br>
+            <span class="helper-text">[i]&nbsp;</span><span>Check this box to enable document storing feature. Leave it unchecked to disable it.</span>
+        </div>
+        <button type="submit" class="btn btn-success">Save Settings</button>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li style="color:green">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+{% endblock %}

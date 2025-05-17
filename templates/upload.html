@@ -1,0 +1,158 @@
+
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="mt-4">Cosplay O&CO</h1>
+  
+  
+  <form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <div class="form-group">
+        <label for="file" class="form-label"><b>Upload Form</b>:</label>
+        <input type="file" name="file" class="form-control" multiple>
+	    </div>
+    </div>   
+    <div class="mb-3">
+      <label><b>Or select a file from Google Drive </b>:</label><br>
+      <input type="hidden" name="access_token" id="access_token" value="">
+      <input type="hidden" name="file_name" id="file_name" value="">
+      <input type="hidden" name="file_type" id="file_type" value="">
+      <input type="hidden" name="google_drive_file_id" id="google_drive_file_id" value="">
+      <button type="button" class="btn btn-outline-primary" id="pick-from-drive">
+        <i class="fab fa-google-drive me-2"></i> Pick from Google Drive
+      </button>
+
+      <div id="drive_file_name" style="margin-top: 10px;"></div>
+    </div>
+
+    
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+
+<script nonce="{{ nonce }}">
+  const GOOGLE_CLIENT_ID = '{{ GOOGLE_CLIENT_ID }}';  // Injected from Flask
+  const APP_ID = '{{ GOOGLE_APP_ID }}';  // Found in Google Cloud console
+  const API_KEY = '{{ GOOGLE_API_KEY }}';  // Found in Google Cloud console
+  
+  let tokenClient;
+  let accessToken = null;
+
+  function initializeGapiClient() {
+    //gapi.load('client:picker', onAuthApiLoad);
+    gapi.load('client:auth2:picker', onAuthApiLoad);
+
+  }
+  
+  function onAuthApiLoad() {
+    if (!GOOGLE_CLIENT_ID) {
+        console.error("GOOGLE_CLIENT_ID is missing!");
+        return;
+    }
+
+    if (typeof google === 'undefined') {
+        console.error("Google API is not ready yet.");
+        return;
+    }
+    if (typeof gapi === 'undefined') {
+        console.error("GAPI client is not ready yet.");
+        return;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/drive.readonly',
+        callback: (tokenResponse) => {
+            if (tokenResponse.error) {
+                console.error('Error obtaining access token:', tokenResponse);
+                return;
+            }
+
+            accessToken = tokenResponse.access_token;
+            document.getElementById('access_token').value = tokenResponse.access_token;
+            console.log('Successfully obtained access token:', accessToken);
+            
+            // Now call the function that initializes your Picker or Drive logic
+            onAccessTokenReceived();
+        }
+    });
+
+    // Now trigger the flow: request an access token from the user
+    requestAccessToken();
+  }
+
+  function handleAuthResult(authResult) {
+    if (authResult && !authResult.error) {
+      oauthToken = authResult.access_token;
+      createPicker();
+    } else {
+      console.error('Auth failed:', authResult.error);
+    }
+  }
+
+  function requestAccessToken() {
+    if (!tokenClient) {
+        console.error('Token client is not initialized.');
+        return;
+    }
+    tokenClient.requestAccessToken();
+  }
+
+  function onAccessTokenReceived() {
+      // Example usage: initialize the Google Picker
+      if (accessToken) {
+          console.log('Ready to use the access token.');
+          loadPicker();
+      } else {
+          console.error('Access token is not available.');
+      }
+  }
+
+  function loadPicker() {
+    const view = new google.picker.View(google.picker.ViewId.DOCS);
+    const picker = new google.picker.PickerBuilder()
+      .addView(view)
+      .setOAuthToken(gapi.auth.getToken().access_token)
+      .setDeveloperKey(API_KEY) // Must be valid
+      .setCallback(pickerCallback)
+      .build();
+    picker.setVisible(true);
+  }
+
+  function pickerCallback(data) {
+      gfile = null;
+      if (data.action === google.picker.Action.PICKED) {
+         gfile = data.docs[0];
+          console.log('Picked file:', gfile);
+          if (gfile.mimeType === "application/vnd.google-apps.spreadsheet" 
+            || gfile.mimeType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            || gfile.mimeType === "text/csv") {
+            document.getElementById('google_drive_file_id').value = gfile.id;
+            document.getElementById('file_name').value = gfile.name;
+            document.getElementById('file_type').value = gfile.mimeType;
+            document.getElementById('drive_file_name').innerText = "Selected file: " + gfile.name;
+          } else {
+              document.getElementById('drive_file_name').innerText = "Only XLSX or CSV files are allowed.";
+              document.getElementById('drive_file_name').style = "color: red;";
+              alert('Only XLSX or CSV files are allowed.');
+              return;
+          }
+      }
+  }
+
+  
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('pick-from-drive').addEventListener('click', function() {
+      initializeGapiClient();
+      requestAccessToken();
+    });
+  });
+  //function onPickerButtonClicked() {
+    //onApiLoad();
+  //}
+</script>
+
+
+{% endblock %}

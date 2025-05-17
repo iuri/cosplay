@@ -1,0 +1,39 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+   <div class="container mt-4">
+  <h2>Submission {{ submission_id }} Details</h2>
+
+
+  <form method="POST" class="mt-4">
+    <div class="mb-3">
+      <label for="decision" class="form-label">Approval Decision:</label>
+      <select name="decision" id="decision" class="form-select w-auto d-inline">
+        <option value="">--</option>
+        <option value="approved" {% if approval_status == 'approved' %}selected{% endif %}>Approved</option>
+        <option value="disapproved" {% if approval_status == 'disapproved' %}selected{% endif %}>Disapproved</option>
+      </select>
+      <button type="submit" class="btn btn-success ms-2">Save</button>
+    </div>
+
+    <table class="table table-bordered">
+      <tbody>
+        {% for label, value in details.items() %}
+        <tr>
+          <th>{{ label }}</th>
+          <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="mb-3">
+      <button type="submit" class="btn btn-success ms-2">Save</button>
+      <a href="{{ url_for('preview') }}" class="btn btn-secondary">Back</a>
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}    

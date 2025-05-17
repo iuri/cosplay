@@ -1,0 +1,16 @@
+Authlib
+flask
+flask_session
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+google-auth
+google-auth-oauthlib
+hypercorn
+openpyxl
+pandas
+python-dotenv
+python-magic
+requests
+sqlalchemy

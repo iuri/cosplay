@@ -1,0 +1,35 @@
+<!-- templates/home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="container mt-5">
+        <h1>{{ page_title }}</h1>
+        <form method="POST" class="mt-4">	
+            <input type="hidden" id="filename" name="filename" value="{{ filename }}">                    
+            <input type="hidden" id="result" name="result" value="{{ result }}">                  
+            <input type="hidden" id="type" name="type" value="{{ page_title }}">                  
+            
+            <div class="button-container" style=" justify-content: flex-start; ">
+                <button type="submit" name="cancel" class="btn btn-secondary" style="display: flex; justify-content: flex-end;">Finish</button>
+                <div style="width:20px">&nbsp;</div>
+                <button type="submit" name="download" class="btn btn-secondary" style="display: flex; justify-content: flex-end; background-color: #ee6035; border-color: #ee6035;">Download</button>
+            </div>
+            <div class="card mt-3" style="width:auto">
+                <div class="card-body">
+                    <p><strong>Filename:</strong> {{ filename }}</p>
+                    <div>{{ result_html|safe }}</div>
+                    <div>{{ totals_html|safe }}</div>
+                    
+                </div>
+            </div>
+            </br>
+            <div class="button-container">
+                <button type="submit" name="cancel" class="btn btn-success" style="display: flex; justify-content: flex-end;">Finish</button>
+                <div style="width:20px">&nbsp;</div>
+                <button type="submit" name="download" class="btn btn-secondary" style="display: flex; justify-content: flex-end; background-color: #ee6035; border-color: #ee6035;"">Download</button>
+            </div>
+        </form>
+     
+    </div>
+{% endblock %}    

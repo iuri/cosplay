@@ -1,0 +1,43 @@
+runtime: python  # Use the Python version that matches your code compatibility
+env: flex
+
+runtime_config:
+  operating_system: ubuntu22
+  python_version: 3
+
+# service: document-summarization
+service_account: cosplay-460020@appspot.gserviceaccount.com
+
+
+# readiness_check:
+#  path: "/readiness_check"
+#   check_interval_sec: 300
+#  timeout_sec: 300
+#  failure_threshold: 10
+#  success_threshold: 10
+#  app_start_timeout_sec: 1800
+
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+    login: optional  # This allows public access
+
+# Basic scaling settings
+instance_class: F1
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 1
+
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# Optional environment variables
+env_variables:
+  VERSION: $GAE_VERSION
+  ENV: "dev"
+
+entrypoint: hypercorn main:app --bind 0.0.0.0:$PORT
