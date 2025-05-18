@@ -30,7 +30,7 @@ def init_oauth(app):
 #app.add_url_rule('/google_login', 'google_login', methods=['GET', 'POST'])
 @auth_bp.route('/google_login', methods=['GET', 'POST'])
 def google_login():
-    return oauth.google.authorize_redirect(url_for("auth.auth_callback", _external=True))
+    return oauth.google.authorize_redirect(url_for("auth_callback", _external=True))
 
 #app.add_url_rule('/auth_callback', 'auth_callback', methods=['GET', 'POST'])
 @auth_bp.route('/auth_callback', methods=['GET', 'POST'])
@@ -38,7 +38,7 @@ def auth_callback():
     token = oauth.google.authorize_access_token()
     user_info = token.get("userinfo") # Get user info
     session["user"] = user_info  # Save user info in session
-    return redirect("https://cosplay.iurix.com/auth_callback")
+    return redirect(url_for("preview"))
 
 
 
@@ -59,7 +59,7 @@ def login():
         # Check if the credentials are valid
         if username in users and users[username] == password:
             session['user'] = {"name": username, "email": username}
-            return redirect(url_for('upload'))
+            return redirect(url_for('preview'))
         else:
             error = "Invalid credentials. Please try again."
             return render_template('login.html', error=error)

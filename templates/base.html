@@ -249,6 +249,18 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             {% if session.get('user') %}
+             <li class="nav-item d-flex align-items-center">
+                <a class="nav-link d-flex" href="{{ url_for('preview') }}">
+                  <i class="bi bi-clipboard-data-fill" style="font-size: 1.2rem; margin-right: 5px;"></i>
+                  <span class="d-none d-lg-inline">Home</span>
+                </a>
+              </li>
+               <li class="nav-item d-flex align-items-center">
+                <a class="nav-link d-flex" href="{{ url_for('upload') }}">
+                  <i class="bi bi-cloud-upload" style="font-size: 1.2rem; margin-right: 5px;"></i>
+                  <span class="d-none d-lg-inline">Upload</span>
+                </a>
+              </li>
               <!-- Logout -->
               <li class="nav-item d-flex align-items-center">
                 <a class="nav-link d-flex" href="{{ url_for('logout') }}">
@@ -266,12 +278,18 @@
       <!-- Sidebar -->
       <div class="sidebar">
           {% if session.get('user') %}
+          
+             <!-- Preview Data -->
+            <a href="{{ url_for('preview') }}" class="{% if request.endpoint == 'preview' %}active{% endif %}">
+              <i class="bi bi-clipboard-data-fill"></i>
+              <span>Preview</span>
+            </a>
+
             <!-- Upload Document -->
             <a href="{{ url_for('upload') }}" class="{% if request.endpoint == 'upload' %}active{% endif %}">
               <i class="bi bi-cloud-upload"></i>
               <span>Upload Document</span>
             </a>
-        
             {% if session['user'].name == 'admin' %}
             
               <!-- Settings -->
