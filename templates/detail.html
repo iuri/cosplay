@@ -24,7 +24,7 @@
           <th>{{ label }}</th>
           <td>
             {% if value.endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')) %}
-              <a href="{{ value }}" target="_blank">
+              <a href="{{ value }}" class="glightbox" data-gallery="submission-gallery" data-title="{{ label }}">
                 <img src="{{ value }}" alt="Image" class="img-thumbnail" style="max-height: 100px;">
               </a>
             {% elif value.endswith('.pdf') %}
@@ -47,5 +47,9 @@
   </form>
 
 </div>
-
+<!-- GLightbox JS -->
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script>
+  const lightbox = GLightbox({ selector: '.glightbox' });
+</script>
 {% endblock %}    

@@ -23,6 +23,9 @@
     <!-- Load GAPI (Google API Client) -->
     <script nonce="{{ nonce }}" src="https://apis.google.com/js/api.js"></script>
 
+    <!-- GLightbox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+
     <style>
       body {
         margin: 0;
@@ -250,9 +253,9 @@
           <ul class="navbar-nav ms-auto">
             {% if session.get('user') %}
              <li class="nav-item d-flex align-items-center">
-                <a class="nav-link d-flex" href="{{ url_for('preview') }}">
+                <a class="nav-link d-flex" href="{{ url_for('home') }}">
                   <i class="bi bi-clipboard-data-fill" style="font-size: 1.2rem; margin-right: 5px;"></i>
-                  <span class="d-none d-lg-inline">Home</span>
+                  <span class="d-none d-lg-inline">Data</span>
                 </a>
               </li>
                <li class="nav-item d-flex align-items-center">
@@ -279,10 +282,10 @@
       <div class="sidebar">
           {% if session.get('user') %}
           
-             <!-- Preview Data -->
-            <a href="{{ url_for('preview') }}" class="{% if request.endpoint == 'preview' %}active{% endif %}">
+             <!-- Home List Data -->
+            <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">
               <i class="bi bi-clipboard-data-fill"></i>
-              <span>Preview</span>
+              <span>Data</span>
             </a>
 
             <!-- Upload Document -->

@@ -38,7 +38,7 @@ def auth_callback():
     token = oauth.google.authorize_access_token()
     user_info = token.get("userinfo") # Get user info
     session["user"] = user_info  # Save user info in session
-    return redirect(url_for("preview"))
+    return redirect(url_for("home"))
 
 
 
@@ -59,7 +59,7 @@ def login():
         # Check if the credentials are valid
         if username in users and users[username] == password:
             session['user'] = {"name": username, "email": username}
-            return redirect(url_for('preview'))
+            return redirect(url_for('home'))
         else:
             error = "Invalid credentials. Please try again."
             return render_template('login.html', error=error)

@@ -18,7 +18,8 @@ from settings import settings_page
 from utils import allowed_file
 
 from sqlalchemy import create_engine
-from models import Base, FormResponse
+from models import Base, FormResponse, ColumnLabel
+
 from sqlalchemy.orm import sessionmaker
 # Import necessary modules
 from models import ColumnLabel, FormResponse
@@ -101,9 +102,94 @@ def download_file_from_drive(service, file_id):
     return f"{file_name}"
 
 
+
+
+## Begin send Emails 
+
+def create_service(user_email):
+    # Path to the credentials.json you downloaded
+    SERVICE_ACCOUNT_FILE = './lunavisionlabs-48f46e544921.json'
+    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+    USER_EMAIL = user_email
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE,
+        scopes=SCOPES,
+        subject=USER_EMAIL
+    )
+    delegated_credentials = credentials.with_subject(user_email)
+
+    service = build('gmail', 'v1', credentials=delegated_credentials)
+    return service
+
+def create_message(sender, to, subject, body_text):
+    message = MIMEText(body_text)
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    return {'raw': raw_message}
+
+def send_email(user_email, to, subject, body):
+    service = create_service(user_email)
+    message = create_message(user_email, to, subject, body)
+    send_result = service.users().messages().send(userId='me', body=message).execute()
+    return send_result
+
+
+
+def send_email(name, surname, email, phone, decision):
+    # Placeholder function to send email
+    # Implement your email sending logic here
+    print(f"Email sent to : {name}, {surname}, {email}, {phone} with decision: {decision}")
+    
+
+def get_person_info(session, sid):
+    """
+    Given a submission ID, return the first 4 fields based on column label order.
+    """
+    # Load all column labels as a dictionary {id: name}
+    labels = {c.id: c.name for c in session.query(ColumnLabel).all()}
+    name_to_id = {v: k for k, v in labels.items()}  # reverse mapping
+
+    # Get the first 4 column names
+    columns = list(labels.values())[:4]
+
+    # Get corresponding column IDs
+    relevant_column_ids = [name_to_id[name] for name in columns if name in name_to_id]
+
+    # Fetch values for the selected column IDs and submission ID
+    rows = (
+        session.query(FormResponse)
+        .filter(
+            FormResponse.submission_id == sid,
+            FormResponse.column_id.in_(relevant_column_ids)
+        )
+        .all()
+    )
+
+    # Build a dictionary {column_name: value}
+    data = {}
+    for row in rows:
+        col_name = labels.get(row.column_id)
+        if col_name:
+            data[col_name] = row.value
+
+    # Ensure all keys are present even if missing
+    for col in columns:
+        data.setdefault(col, "")
+
+    # Extract required fields (handle possible different capitalizations)
+    name = data.get("Nome") or data.get("nome", "")
+    surname = data.get("Sobrenome") or data.get("sobrenome", "")
+    email = data.get("E-mail") or data.get("e-mail", "")
+    phone = data.get("Telefone") or data.get("telefone", "")
+
+    return name, surname, email, phone
+
+
 # Route to display the file preview
-@app.route('/preview', methods=['GET', 'POST'])
-def preview():
+@app.route('/home', methods=['GET', 'POST'])
+def home():
     session = Session()
 
     # Handle form submission (approvals)
@@ -112,6 +198,14 @@ def preview():
             if key.startswith("decision_"):
                 sid = int(key.split("_")[1])
                 session.query(FormResponse).filter_by(submission_id=sid).update({"approved": value})
+            name, surname, email, phone = get_person_info(session, sid)
+            # send_email(name, surname, email, phone, value)  # Send email notification
+            response = send_email(
+                'growth.bi@omeletecompany.com', 
+                email, 
+                f"{name} {surname}, You've been {value} !", 
+                f"Hello {name},\n\nYour Cosplay submission has been {value}.\n\nBest regards,\nOmelete&Company"
+            )
         session.commit()
 
     # Get filter parameter
@@ -148,7 +242,7 @@ def preview():
     display_columns = all_columns[:6]  # first 6 columns
 
     session.close()
-    return render_template("preview.html", responses=filtered_rows, columns=display_columns, status_filter=status_filter)
+    return render_template("home.html", responses=filtered_rows, columns=display_columns, status_filter=status_filter)
  
 @app.route("/detail/<int:submission_id>", methods=["GET", "POST"])
 def detail_view(submission_id):
