@@ -30,6 +30,13 @@ import pandas as pd
 # Categorization
 import re
 
+import base64
+from email.mime.text import MIMEText
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+
+
 # Initialize Flask application
 app = Flask(__name__)
 # Secret key to encrypt session data
@@ -108,6 +115,7 @@ def download_file_from_drive(service, file_id):
 
 def create_service(user_email):
     # Path to the credentials.json you downloaded
+    # SERVICE_ACCOUNT_FILE = './cosplay-460020-3edb48ab25d4.json'
     SERVICE_ACCOUNT_FILE = './lunavisionlabs-48f46e544921.json'
     SCOPES = ['https://www.googleapis.com/auth/gmail.send']
     USER_EMAIL = user_email
@@ -135,13 +143,6 @@ def send_email(user_email, to, subject, body):
     send_result = service.users().messages().send(userId='me', body=message).execute()
     return send_result
 
-
-
-def send_email(name, surname, email, phone, decision):
-    # Placeholder function to send email
-    # Implement your email sending logic here
-    print(f"Email sent to : {name}, {surname}, {email}, {phone} with decision: {decision}")
-    
 
 def get_person_info(session, sid):
     """
@@ -188,9 +189,10 @@ def get_person_info(session, sid):
 
 
 # Route to display the file preview
-@app.route('/home', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def home():
     session = Session()
+    SEND_EMAIL_P = True # False
 
     # Handle form submission (approvals)
     if request.method == "POST":
@@ -198,15 +200,23 @@ def home():
             if key.startswith("decision_"):
                 sid = int(key.split("_")[1])
                 session.query(FormResponse).filter_by(submission_id=sid).update({"approved": value})
-            name, surname, email, phone = get_person_info(session, sid)
-            # send_email(name, surname, email, phone, value)  # Send email notification
-            response = send_email(
-                'growth.bi@omeletecompany.com', 
-                email, 
-                f"{name} {surname}, You've been {value} !", 
-                f"Hello {name},\n\nYour Cosplay submission has been {value}.\n\nBest regards,\nOmelete&Company"
-            )
         session.commit()
+
+        if SEND_EMAIL_P:
+            for key, value in request.form.items():
+                if key.startswith("decision_"):
+                    sid = int(key.split("_")[1])
+
+                    name, surname, email, phone = get_person_info(session, sid)
+                    # send_email(name, surname, email, phone, value)  # Send email notification
+                    response = send_email(
+                        'growth.bi@omeletecompany.com', 
+                        email, 
+                        f"{name} {surname}, You've been {value} to the O&CO Cosplay contest!", 
+                        f"Hello {name},\n\nYour submission has been {value} to the O&CO Cosplay contest.\n\nBest regards,\nOmelete&Company"
+                    )
+                    print("Email response:", response)
+
 
     # Get filter parameter
     status_filter = request.args.get("status")  # approved, disapproved, or pending
@@ -254,6 +264,18 @@ def detail_view(submission_id):
         decision = request.form.get("decision")
         session.query(FormResponse).filter_by(submission_id=submission_id).update({"approved": decision})
         session.commit()
+
+        # Send email notification
+        name, surname, email, phone = get_person_info(session, submission_id)
+        # send_email(name, surname, email, phone, value)  # Send email notification
+        response = send_email(
+            'growth.bi@omeletecompany.com', 
+            email, 
+            f"{name} {surname}, You've been {decision} to the O&CO Cosplay contest!", 
+            f"Hello {name},\n\nYour submission has been {decision} to the O&CO Cosplay contest.\n\nBest regards,\nOmelete&Company"
+        )
+        print("Email response:", response)
+
 
     responses = session.query(FormResponse).filter_by(submission_id=submission_id).all()
     details = {labels[r.column_id]: r.value for r in responses}
@@ -335,7 +357,7 @@ def store_csv(df):
     print('Data successfully stored in the database!')
     return
 # Route to handle the home page and file uploads
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/upload', methods=['GET', 'POST'])
 def upload():
     # If user is not logged in, redirect to login page
     if not is_logged_in():
